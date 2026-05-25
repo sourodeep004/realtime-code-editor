@@ -11,7 +11,7 @@ import {
   FiCode,
 } from "react-icons/fi";
 
-const socket = io("https://realtime-code-editor-zwp3.onrender.com");
+const socket = io("https://realtime-code-editor-5086.onrender.com");
 
 const App = () => {
   const [joined, setJoined] = useState(false);
