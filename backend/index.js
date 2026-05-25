@@ -1,7 +1,6 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import path from "path";
 
 const app = express();
 
@@ -24,8 +23,15 @@ io.on("connection", (socket) => {
   socket.on("join", ({ roomId, userName }) => {
     if (currentRoom) {
       socket.leave(currentRoom);
-      rooms.get(currentRoom).delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom)));
+
+      if (rooms.has(currentRoom)) {
+        rooms.get(currentRoom).delete(currentUser);
+
+        io.to(currentRoom).emit(
+          "userJoined",
+          Array.from(rooms.get(currentRoom))
+        );
+      }
     }
 
     currentRoom = roomId;
@@ -39,7 +45,10 @@ io.on("connection", (socket) => {
 
     rooms.get(roomId).add(userName);
 
-    io.to(roomId).emit("userJoined", Array.from(rooms.get(currentRoom)));
+    io.to(roomId).emit(
+      "userJoined",
+      Array.from(rooms.get(roomId))
+    );
   });
 
   socket.on("codeChange", ({ roomId, code }) => {
@@ -47,9 +56,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveRoom", () => {
-    if (currentRoom && currentUser) {
+    if (
+      currentRoom &&
+      currentUser &&
+      rooms.has(currentRoom)
+    ) {
       rooms.get(currentRoom).delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom)));
+
+      io.to(currentRoom).emit(
+        "userJoined",
+        Array.from(rooms.get(currentRoom))
+      );
 
       socket.leave(currentRoom);
 
@@ -59,32 +76,46 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", ({ roomId, userName }) => {
-    socket.to(roomId).emit("userTyping", userName);
+    socket.to(roomId).emit(
+      "userTyping",
+      userName
+    );
   });
 
-  socket.on("languageChange", ({ roomId, language }) => {
-    io.to(roomId).emit("languageUpdate", language);
-  });
+  socket.on(
+    "languageChange",
+    ({ roomId, language }) => {
+      io.to(roomId).emit(
+        "languageUpdate",
+        language
+      );
+    }
+  );
 
   socket.on("disconnect", () => {
-    if (currentRoom && currentUser) {
+    if (
+      currentRoom &&
+      currentUser &&
+      rooms.has(currentRoom)
+    ) {
       rooms.get(currentRoom).delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom)));
+
+      io.to(currentRoom).emit(
+        "userJoined",
+        Array.from(rooms.get(currentRoom))
+      );
     }
-    console.log("user Disconnected");
+
+    console.log("User Disconnected");
   });
+});
+
+app.get("/", (req, res) => {
+  res.send("Realtime Code Editor Backend Running");
 });
 
 const port = process.env.PORT || 5000;
 
-const __dirname = path.resolve();
-
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
-
 server.listen(port, () => {
-  console.log("server is working on port 5000");
+  console.log(`Server is working on port ${port}`);
 });
