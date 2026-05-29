@@ -23,7 +23,7 @@ Built using modern web technologies and WebSocket communication, the platform al
 
 Realtime collaborative editing and Socket.IO-based synchronization are standard features of this type of editor architecture. :contentReference[oaicite:0]{index=0}
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - React.js
